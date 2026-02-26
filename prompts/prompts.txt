@@ -1,0 +1,34 @@
+img1 
+Prompt: "thick messy wavy dark brown hair, full thick untamed dark beard, rugged look, natural lighting, photorealistic, high quality"
+
+Negative: "short hair, slicked back, clean shaven, bald, straight hair, grey hair, blurry" 
+
+img2
+Prompt: "very short buzz cut hair, military crop, short neat dark facial stubble, natural lighting, photorealistic, high quality"
+
+Negative: "long hair, full beard, messy hair, handlebar mustache, grey hair, blurry"
+
+img3
+Prompt: "slicked back combed pompadour hair, prominent curled handlebar mustache, small neat goatee, vintage style, natural lighting, photorealistic, high quality"
+
+Negative: "full thick beard, messy hair, bald, grey hair, stubble, blurry"
+
+img4
+Prompt: "neatly styled silver grey hair, full thick silver grey beard, distinguished look, mature, natural lighting, photorealistic, high quality"
+
+Negative: "dark hair, brown beard, bald, clean shaven, short stubble, messy, blurry"
+
+img5
+Prompt: "hair pulled back into a neat man bun top knot, short dark facial stubble, natural lighting, photorealistic, high quality"
+
+Negative: "long loose hair, bald, full thick beard, clean shaven, messy hair, blurry"
+
+img6
+Prompt: "long loose wavy brown hair flowing down to the shoulders, medium messy natural beard, natural lighting, photorealistic, high quality"
+
+Negative: "short hair, buzz cut, bald, clean shaven, slicked back, perfect grooming, blurry"
+
+img7  
+Prompt: "modern skin fade haircut with textured styled volume on top, sharp neat goatee and mustache, natural lighting, photorealistic, high quality"
+
+Negative: "long hair, full beard, messy hair, bald, unkempt beard, straight flat hair, blurry"

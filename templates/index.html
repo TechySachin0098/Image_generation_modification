@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Hair & Beard Styler — StudioAI</title>
+  <meta name="description"
+    content="Transform your hair and beard instantly using AI. Upload a photo, describe your style, and watch the magic happen." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-base: #0a0b10;
+      --bg-card: #12141d;
+      --bg-glass: rgba(255, 255, 255, 0.04);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(139, 92, 246, 0.45);
+      --accent: #8b5cf6;
+      --accent-2: #ec4899;
+      --accent-grad: linear-gradient(135deg, #8b5cf6, #ec4899);
+      --text-1: #f0f0ff;
+      --text-2: #9ca3c8;
+      --text-3: #5c6080;
+      --success: #22c55e;
+      --error: #f87171;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.20);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-1);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── BACKGROUND ORBS ─── */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.15;
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+
+    .orb-1 {
+      width: 520px;
+      height: 520px;
+      background: #8b5cf6;
+      top: -120px;
+      left: -120px;
+    }
+
+    .orb-2 {
+      width: 420px;
+      height: 420px;
+      background: #ec4899;
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -6s;
+    }
+
+    .orb-3 {
+      width: 280px;
+      height: 280px;
+      background: #06b6d4;
+      top: 45%;
+      left: 50%;
+      animation-delay: -12s;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translate(0, 0) scale(1);
+      }
+
+      to {
+        transform: translate(35px, 25px) scale(1.08);
+      }
+    }
+
+    /* ─── LAYOUT ─── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 28px 80px;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      text-align: center;
+      padding: 56px 0 40px;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      border-radius: 100px;
+      padding: 6px 18px;
+      margin-bottom: 24px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .logo-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(1.4)
+      }
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    h1 .grad {
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--text-2);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.75;
+    }
+
+    /* ─── MAIN CARD ─── */
+    .main-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), var(--shadow-glow);
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+
+    /* ─── SPLIT LAYOUT ─── */
+    .split {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+    }
+
+    @media (max-width: 900px) {
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery-panel {
+        border-left: none !important;
+        border-top: 1px solid var(--border);
+      }
+    }
+
+    /* ══════════════════════════════
+       LEFT PANEL — Upload + Controls
+    ══════════════════════════════ */
+    .left-panel {
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      border-right: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent-grad);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .panel-sub {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      position: relative;
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-md);
+      aspect-ratio: 4/3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+      transition: border-color var(--transition), background var(--transition), transform var(--transition);
+      overflow: hidden;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(139, 92, 246, 0.06);
+      transform: scale(1.005);
+    }
+
+    .upload-zone.has-image {
+      border-style: solid;
+      border-color: var(--border-glow);
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      transition: transform var(--transition);
+    }
+
+    .upload-zone:hover .upload-icon {
+      transform: scale(1.1) translateY(-2px);
+    }
+
+    .upload-text {
+      font-size: 13px;
+      color: var(--text-2);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .upload-text strong {
+      color: var(--text-1);
+      display: block;
+      font-size: 14px;
+    }
+
+    .upload-text em {
+      font-style: normal;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    #preview-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: calc(var(--radius-md)-2px);
+      display: none;
+    }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      backdrop-filter: blur(3px);
+      border-radius: calc(var(--radius-md)-2px);
+    }
+
+    .upload-zone.has-image:hover .preview-overlay {
+      display: flex;
+    }
+
+    .upload-zone.has-image .upload-texts {
+      display: none;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Prompt */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 100px;
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .textarea-wrap {
+      position: relative;
+    }
+
+    textarea,
+    input[type="text"],
+    input[type="range"] {
+      font-family: 'Inter', sans-serif;
+    }
+
+    textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-1);
+      font-size: 13px;
+      line-height: 1.65;
+      padding: 12px 14px;
+      resize: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      min-height: 90px;
+    }
+
+    textarea::placeholder {
+      color: var(--text-3);
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+    }
+
+    .char-count {
+      position: absolute;
+      right: 9px;
+      bottom: 9px;
+      font-size: 10px;
+      color: var(--text-3);
+    }
+
+    /* Prompt source pill */
+    .prompt-source {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--accent-2);
+      font-weight: 600;
+      padding: 3px 10px;
+      background: rgba(236, 72, 153, 0.08);
+      border: 1px solid rgba(236, 72, 153, 0.2);
+      border-radius: 6px;
+      width: fit-content;
+    }
+
+    .prompt-source.show {
+      display: flex;
+    }
+
+    /* Advanced */
+    .advanced-toggle {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-3);
+      cursor: pointer;
+      user-select: none;
+      transition: color var(--transition);
+    }
+
+    .advanced-toggle:hover {
+      color: var(--text-2);
+    }
+
+    .advanced-toggle .arrow {
+      display: inline-block;
+      transition: transform var(--transition);
+      font-size: 10px;
+    }
+
+    .advanced-toggle.open .arrow {
+      transform: rotate(90deg);
+    }
+
+    .advanced-body {
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .advanced-body.open {
+      display: flex;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      appearance: none;
+      height: 4px;
+      background: linear-gradient(to right, var(--accent) var(--pct, 70%), rgba(255, 255, 255, 0.1) var(--pct, 70%));
+      border-radius: 100px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid #12141d;
+      cursor: pointer;
+      transition: transform var(--transition);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .slider-val {
+      min-width: 36px;
+      text-align: right;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .input-sm {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-1);
+      padding: 7px 11px;
+      font-size: 12px;
+      width: 100%;
+      transition: border-color var(--transition);
+    }
+
+    .input-sm:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Generate button */
+    .btn-generate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      width: 100%;
+      padding: 15px;
+      border-radius: var(--radius-md);
+      background: var(--accent-grad);
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 8px 28px rgba(139, 92, 246, 0.35);
+      margin-top: auto;
+    }
+
+    .btn-generate:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(139, 92, 246, 0.5);
+    }
+
+    .btn-generate:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-generate .shine {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.15) 60%, transparent 70%);
+      transform: translateX(-100%);
+    }
+
+    .btn-generate:hover .shine {
+      animation: shine-sweep 0.6s ease forwards;
+    }
+
+    @keyframes shine-sweep {
+      to {
+        transform: translateX(200%);
+      }
+    }
+
+    /* Progress */
+    .progress-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 0;
+      text-align: center;
+    }
+
+    .progress-wrap.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid rgba(139, 92, 246, 0.2);
+      border-top-color: var(--accent);
+      animation: spin 0.85s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .progress-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      width: 100%;
+    }
+
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 12px;
+      color: var(--text-3);
+      transition: color 0.3s;
+    }
+
+    .progress-step.active {
+      color: var(--text-1);
+    }
+
+    .progress-step.done {
+      color: var(--success);
+    }
+
+    .step-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════
+       RIGHT PANEL — Style Gallery
+    ══════════════════════════════ */
+    .gallery-panel {
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .gallery-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .gallery-count {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 3px 10px;
+      white-space: nowrap;
+      margin-top: 4px;
+    }
+
+    /* 3-column grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .gallery-grid::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .gallery-grid::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .gallery-grid::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .gallery-card {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      aspect-ratio: 1 / 1;
+      background: #1a1c28;
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+
+    .gallery-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 16px 36px rgba(139, 92, 246, 0.28);
+    }
+
+    .gallery-card.selected {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3), 0 16px 36px rgba(236, 72, 153, 0.2);
+      transform: translateY(-3px) scale(1.01);
+    }
+
+    .gallery-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      transition: transform 0.45s ease;
+    }
+
+    .gallery-card:hover img {
+      transform: scale(1.06);
+    }
+
+    .card-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
+      padding: 28px 10px 10px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .card-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .selected-pill {
+      background: var(--accent-2);
+      border-radius: 100px;
+      padding: 2px 8px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: none;
+    }
+
+    .gallery-card.selected .selected-pill {
+      display: block;
+    }
+
+    /* Tick overlay */
+    .card-tick {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.5);
+    }
+
+    .gallery-card.selected .card-tick {
+      display: flex;
+    }
+
+    /* Skeleton */
+    .gallery-skeleton {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .skeleton-card {
+      border-radius: 14px;
+      aspect-ratio: 1 / 1;
+      background: linear-gradient(90deg, #1a1c28 25%, #22253a 50%, #1a1c28 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      to {
+        background-position: -200% 0;
+      }
+    }
+
+    /* ─── RESULT SECTION ─── */
+    .result-section {
+      display: none;
+      animation: fadeUp 0.5s ease;
+      margin-bottom: 32px;
+    }
+
+    .result-section.show {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5), var(--shadow-glow);
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .result-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .success-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: var(--success);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .result-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      width: fit-content;
+    }
+
+    .tab-btn {
+      padding: 7px 18px;
+      border-radius: 7px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: all var(--transition);
+      color: var(--text-3);
+      background: transparent;
+    }
+
+    .tab-btn.active {
+      background: rgba(139, 92, 246, 0.2);
+      color: var(--text-1);
+    }
+
+    .result-img-wrap {
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.3);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .result-img-wrap img {
+      width: 100%;
+      display: block;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 18px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-decoration: none;
+      border: 1px solid var(--border-glow);
+      background: rgba(139, 92, 246, 0.12);
+      color: var(--accent);
+    }
+
+    .btn-action:hover {
+      background: rgba(139, 92, 246, 0.22);
+    }
+
+    .btn-reset {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--border);
+      color: var(--text-2);
+    }
+
+    .btn-reset:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-1);
+    }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fca5a5;
+      border-radius: 12px;
+      padding: 13px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(12px);
+      max-width: 90vw;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-3);
+      font-size: 12px;
+      padding-top: 12px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="wrapper">
+
+    <!-- HEADER -->
+    <header>
+      <div class="logo-badge"><span class="dot"></span> Powered by Stability AI</div>
+      <h1>AI Hair &amp; Beard <span class="grad">Styler</span></h1>
+      <p class="subtitle">Pick a style from the gallery, upload your portrait, and let AI transform your look in
+        seconds.</p>
+    </header>
+
+    <!-- ════════════════════════════════════════════════
+       MAIN CARD  (Left = Upload/Controls | Right = Gallery)
+  ════════════════════════════════════════════════ -->
+    <div class="main-card">
+      <div class="split">
+
+        <!-- ══ LEFT: Upload + Generate ══ -->
+        <div class="left-panel">
+
+          <!-- Upload -->
+          <div>
+            <div class="panel-title">
+              <div class="step-num">1</div>
+              <div>
+                Upload Photo
+                <div class="panel-sub">Portrait · PNG / JPG / WEBP · Max 20 MB</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="file-input" accept="image/png,image/jpeg,image/webp" />
+            <img src="" alt="Preview" id="preview-img" />
+            <div class="preview-overlay">🔄 Change Photo</div>
+            <div class="upload-texts">
+              <div class="upload-icon">📷</div>
+              <div class="upload-text">
+                <strong>Drop your photo here</strong>
+                or <em>click to browse</em>
+              </div>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <!-- Prompt -->
+          <div>
+            <div class="panel-title" style="margin-bottom:14px;">
+              <div class="step-num">2</div>
+              <div>
+                Style Prompt
+                <div class="panel-sub">Select from gallery or write your own</div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="prompt-input">Prompt <span class="tag">Required</span></label>
+              <div class="textarea-wrap">
+                <textarea id="prompt-input" rows="3"
+                  placeholder="e.g. long wavy auburn hair, thick stylish beard, natural lighting, photorealistic"></textarea>
+                <span class="char-count" id="char-count">0 / 500</span>
+              </div>
+              <div class="prompt-source" id="prompt-source">
+                <span>✦</span> <span id="prompt-source-label">Auto-filled from gallery</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced -->
+          <div>
+            <div class="advanced-toggle" id="adv-toggle">
+              <span class="arrow">▶</span> Advanced options
+            </div>
+            <div class="advanced-body" id="adv-body">
+              <div class="field">
+                <label for="neg-input">Negative prompt</label>
+                <textarea id="neg-input" rows="2" style="min-height:56px;"
+                  placeholder="e.g. cartoon, blurry, distorted face"></textarea>
+              </div>
+              <div class="field">
+                <label>Inpaint strength</label>
+                <div class="slider-row">
+                  <input type="range" id="strength-slider" min="0.40" max="0.95" step="0.05" value="0.70" />
+                  <span class="slider-val" id="strength-val">0.70</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Generate -->
+          <button class="btn-generate" id="btn-generate">
+            <span class="shine"></span>
+            <span id="btn-icon">✨</span>
+            <span id="btn-text">Generate Style</span>
+          </button>
+
+          <!-- Progress -->
+          <div class="progress-wrap" id="progress-wrap">
+            <div class="spinner"></div>
+            <div class="progress-steps">
+              <div class="progress-step" id="step-1">
+                <div class="step-dot"></div> Detecting face &amp; building mask…
+              </div>
+              <div class="progress-step" id="step-2">
+                <div class="step-dot"></div> Sending to Stability AI…
+              </div>
+              <div class="progress-step" id="step-3">
+                <div class="step-dot"></div> Rendering your new look…
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /left-panel -->
+
+        <!-- ══ RIGHT: Style Gallery ══ -->
+        <div class="gallery-panel">
+          <div class="gallery-header">
+            <div>
+              <div class="panel-title">
+                <div class="step-num" style="background:var(--accent-grad);">3</div>
+                <div>
+                  Choose a Style
+                  <div class="panel-sub">Click any look to auto-fill the prompt below</div>
+                </div>
+              </div>
+            </div>
+            <div class="gallery-count" id="gallery-count">Loading…</div>
+          </div>
+
+          <!-- Skeleton -->
+          <div class="gallery-skeleton" id="gallery-skeleton">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+
+          <!-- Actual grid (3 cols) -->
+          <div class="gallery-grid" id="gallery-grid" style="display:none;"></div>
+
+        </div><!-- /gallery-panel -->
+
+      </div><!-- /split -->
+    </div><!-- /main-card -->
+
+    <!-- ════════════════════════════════════════════════
+       RESULT SECTION
+  ════════════════════════════════════════════════ -->
+    <div class="result-section" id="result-section">
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-title">Your New Look 🎉</div>
+          <div class="success-badge">✅ Generated</div>
+        </div>
+        <div class="result-tabs">
+          <button class="tab-btn active" id="tab-result" onclick="switchTab('result')">Result</button>
+          <button class="tab-btn" id="tab-compare" onclick="switchTab('compare')">Before / After</button>
+        </div>
+        <div class="result-img-wrap">
+          <img src="" alt="Result" id="result-img" />
+        </div>
+        <div class="result-actions">
+          <a class="btn-action" id="dl-btn" href="#" download="ai-styled.png">⬇️ Download Result</a>
+          <a class="btn-action" id="dl-comp-btn" href="#" download="before-after.png">📊 Before / After</a>
+          <button class="btn-action btn-reset" onclick="resetAll()">🔄 Try Another</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>Built with ❤️ by <a href="#">AVIOX PVT LTD</a> · AI Hair &amp; Beard Styler v1.0</footer>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"><span>⚠️</span><span id="toast-msg">Something went wrong</span></div>
+
+  <script>
+    // ─── GALLERY ─────────────────────────────────────────────────
+    const galleryGrid = document.getElementById('gallery-grid');
+    const gallerySkeleton = document.getElementById('gallery-skeleton');
+    const galleryCount = document.getElementById('gallery-count');
+    const promptInput = document.getElementById('prompt-input');
+    const negInput = document.getElementById('neg-input');
+    const promptSource = document.getElementById('prompt-source');
+    const promptSourceLbl = document.getElementById('prompt-source-label');
+
+    let galleryData = [];
+    let selectedGalleryKey = null;
+
+    async function loadGallery() {
+      try {
+        const res = await fetch('/api/prompts');
+        galleryData = await res.json();
+
+        gallerySkeleton.style.display = 'none';
+        galleryGrid.style.display = 'grid';
+        galleryCount.textContent = `${galleryData.length} styles`;
+
+        galleryData.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'gallery-card';
+          card.dataset.key = item.key;
+          card.innerHTML = `
+        <img src="${item.image_url}" alt="${item.key}" loading="lazy" />
+        <div class="card-tick">✓</div>
+        <div class="card-footer">
+          <span class="card-name">${item.key.replace('img', 'Style ')}</span>
+          <span class="selected-pill">✓ Active</span>
+        </div>
+      `;
+          card.addEventListener('click', () => selectGalleryItem(item, card));
+          galleryGrid.appendChild(card);
+        });
+      } catch (e) {
+        gallerySkeleton.innerHTML = '<p style="color:var(--text-3);font-size:13px;grid-column:1/-1;">Could not load styles.</p>';
+        galleryCount.textContent = '0 styles';
+      }
+    }
+
+    function selectGalleryItem(item, card) {
+      document.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('selected'));
+
+      // Toggle off
+      if (selectedGalleryKey === item.key) {
+        selectedGalleryKey = null;
+        promptSource.classList.remove('show');
+        return;
+      }
+
+      // Select
+      card.classList.add('selected');
+      selectedGalleryKey = item.key;
+
+      // Fill prompts
+      promptInput.value = item.prompt;
+      negInput.value = item.negative;
+      updateCharCount();
+
+      // Open advanced if negative exists
+      if (item.negative) {
+        advToggle.classList.add('open');
+        advBody.classList.add('open');
+      }
+
+      // Show source badge
+      promptSourceLbl.textContent = `Auto-filled · ${item.key.replace('img', 'Style ')}`;
+      promptSource.classList.add('show');
+    }
+
+    loadGallery();
+
+    // ─── UPLOAD ──────────────────────────────────────────────────
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const previewImg = document.getElementById('preview-img');
+
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault(); uploadZone.classList.remove('drag-over');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+    function handleFile(file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewImg.style.display = 'block';
+        uploadZone.classList.add('has-image');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ─── CHAR COUNT ──────────────────────────────────────────────
+    const charCount = document.getElementById('char-count');
+    function updateCharCount() {
+      const len = promptInput.value.length;
+      charCount.textContent = `${len} / 500`;
+      charCount.style.color = len > 480 ? 'var(--error)' : 'var(--text-3)';
+    }
+    promptInput.addEventListener('input', () => {
+      updateCharCount();
+      if (selectedGalleryKey) {
+        document.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('selected'));
+        selectedGalleryKey = null;
+        promptSource.classList.remove('show');
+      }
+    });
+
+    // ─── ADVANCED ────────────────────────────────────────────────
+    const advToggle = document.getElementById('adv-toggle');
+    const advBody = document.getElementById('adv-body');
+    advToggle.addEventListener('click', () => {
+      advToggle.classList.toggle('open');
+      advBody.classList.toggle('open');
+    });
+
+    // ─── SLIDER ──────────────────────────────────────────────────
+    const slider = document.getElementById('strength-slider');
+    const sliderVal = document.getElementById('strength-val');
+    function updateSlider() {
+      const val = parseFloat(slider.value);
+      sliderVal.textContent = val.toFixed(2);
+      slider.style.setProperty('--pct', ((val - 0.40) / (0.95 - 0.40) * 100) + '%');
+    }
+    slider.addEventListener('input', updateSlider);
+    updateSlider();
+
+    // ─── PROGRESS ────────────────────────────────────────────────
+    let progressTimer = null;
+    function startProgress() {
+      ['step-1', 'step-2', 'step-3'].forEach(s => document.getElementById(s).className = 'progress-step');
+      document.getElementById('step-1').classList.add('active');
+      let i = 0;
+      progressTimer = setInterval(() => {
+        if (i >= 2) return;
+        document.getElementById(`step-${i + 1}`).classList.replace('active', 'done');
+        i++;
+        document.getElementById(`step-${i + 1}`).classList.add('active');
+      }, 4000);
+    }
+    function stopProgress() {
+      clearInterval(progressTimer);
+      ['step-1', 'step-2', 'step-3'].forEach(s => {
+        document.getElementById(s).classList.remove('active');
+        document.getElementById(s).classList.add('done');
+      });
+    }
+
+    // ─── TOAST ───────────────────────────────────────────────────
+    function showToast(msg) {
+      document.getElementById('toast-msg').textContent = msg;
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 5000);
+    }
+
+    // ─── GENERATE ────────────────────────────────────────────────
+    const btnGenerate = document.getElementById('btn-generate');
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+    const progressWrap = document.getElementById('progress-wrap');
+    const resultSection = document.getElementById('result-section');
+    const resultImg = document.getElementById('result-img');
+    let storedOutputUrl = '', storedCompUrl = '';
+
+    btnGenerate.addEventListener('click', async () => {
+      if (!fileInput.files[0]) {
+        showToast('Please upload a photo first.');
+        uploadZone.style.borderColor = 'var(--error)';
+        setTimeout(() => uploadZone.style.borderColor = '', 2000);
+        return;
+      }
+      if (!promptInput.value.trim()) {
+        showToast('Please enter a prompt or pick a style from the gallery →');
+        promptInput.style.borderColor = 'var(--error)';
+        setTimeout(() => promptInput.style.borderColor = '', 2000);
+        return;
+      }
+
+      btnGenerate.disabled = true;
+      btnText.textContent = 'Generating…';
+      btnIcon.textContent = '⏳';
+      progressWrap.classList.add('show');
+      resultSection.classList.remove('show');
+      startProgress();
+
+      const form = new FormData();
+      form.append('image', fileInput.files[0]);
+      form.append('prompt', promptInput.value.trim());
+      form.append('negative', negInput.value.trim());
+      form.append('strength', slider.value);
+
+
+      try {
+        const resp = await fetch('/api/process', { method: 'POST', body: form });
+        const data = await resp.json();
+        stopProgress();
+        progressWrap.classList.remove('show');
+
+        if (!resp.ok || data.error) throw new Error(data.error || 'Unknown error');
+
+        storedOutputUrl = data.output_url + '?t=' + Date.now();
+        storedCompUrl = data.comparison_url + '?t=' + Date.now();
+
+        resultImg.src = storedOutputUrl;
+        document.getElementById('dl-btn').href = storedOutputUrl;
+        document.getElementById('dl-comp-btn').href = storedCompUrl;
+
+        switchTab('result');
+        resultSection.classList.add('show');
+        resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch (err) {
+        stopProgress();
+        progressWrap.classList.remove('show');
+        showToast('Error: ' + err.message);
+      } finally {
+        btnGenerate.disabled = false;
+        btnText.textContent = 'Generate Style';
+        btnIcon.textContent = '✨';
+      }
+    });
+
+    // ─── TABS ────────────────────────────────────────────────────
+    function switchTab(tab) {
+      document.getElementById('tab-result').classList.toggle('active', tab === 'result');
+      document.getElementById('tab-compare').classList.toggle('active', tab === 'compare');
+      resultImg.src = tab === 'result' ? storedOutputUrl : storedCompUrl;
+    }
+
+    // ─── RESET ───────────────────────────────────────────────────
+    function resetAll() {
+      fileInput.value = '';
+      previewImg.style.display = 'none';
+      previewImg.src = '';
+      uploadZone.classList.remove('has-image');
+      promptInput.value = '';
+      negInput.value = '';
+      updateCharCount();
+      document.querySelectorAll('.gallery-card').forEach(c => c.classList.remove('selected'));
+      selectedGalleryKey = null;
+      promptSource.classList.remove('show');
+      resultSection.classList.remove('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+
+</html>
